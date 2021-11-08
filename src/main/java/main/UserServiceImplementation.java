@@ -1,12 +1,18 @@
 package main;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserServiceImplementation implements UserService {
@@ -23,27 +29,92 @@ public class UserServiceImplementation implements UserService {
 	}
 
 	@Override
+	@Transactional(readOnly = false)
 	public UserBoundary createNewUser(UserBoundary userBoundary) {
-		UserEntity userEntity = convertToEntity(userBoundary);
-
-		Optional<UserEntity> op = this.userDao.findById(userEntity.getEmail());
-		if (!op.isPresent()) {
-			this.userDao.save(userEntity);
-		} else {
-			throw new RuntimeException();
+		UserEntity userEntity = null;
+		if (isValidEmail(userBoundary.getEmail())) {
+			Optional<UserEntity> op = this.userDao.findById(userBoundary.getEmail());
+			if (!op.isPresent()) {
+				userEntity = convertToEntity(userBoundary);
+				this.userDao.save(userEntity);
+				return convertToBoundary(userEntity);
+			}
+			throw new RuntimeException(userBoundary.getEmail() + " already exists!");
 		}
-		return userBoundary;
+		throw new RuntimeException("Invalid email: " + userBoundary.getEmail());
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public UserBoundary getUserById(String email) {
 		if (isValidEmail(email)) {
 			Optional<UserEntity> op = this.userDao.findById(email);
 			if (op.isPresent()) {
 				return convertToBoundary(op.get());
 			}
+			throw new KeyNotFoundException("User with " + email + " not found");
 		}
-		throw new KeyNotFoundException("User with " + email + " not found.");
+		throw new RuntimeException("Invalid email: " + email);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public UserBoundary login(String email, String password) {
+		if (isValidEmail(email) && isValidPassword(password)) {
+			Optional<UserEntity> op = this.userDao.findById(email);
+			if (op.isPresent()) {
+				UserEntity userEntity = op.get();
+				if (userEntity.getPassword().equals(password)) {
+					return convertToBoundary(userEntity);
+				}
+				throw new UnauthorizedException("Incorrect password!");
+			}
+			throw new KeyNotFoundException("User email " + email + " not found");
+		}
+		throw new RuntimeException("Invalid credentials");
+	}
+
+	@Override
+	@Transactional(readOnly = false)
+	public void updateUser(String email, UserBoundary userBoundary) {
+		if (isValidEmail(email)) {
+			Optional<UserEntity> op = this.userDao.findById(email);
+			if (op.isPresent()) {
+				UserEntity userEntity = convertToEntity(userBoundary);
+				userEntity.setEmail(email);
+				this.userDao.save(userEntity);
+			}
+			throw new KeyNotFoundException("User email " + email + " not found");
+		}
+		throw new RuntimeException("Invalid email: " + email);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<UserBoundary> getAllUsers(int size, int page, String sortBy, String sortOrder) {
+		if (sortBy == null || sortBy.trim().isEmpty()) {
+			sortBy = "email";
+		}
+
+		Direction sortDirection = Direction.ASC;
+		Optional<Direction> op = Direction.fromOptionalString(sortOrder.toUpperCase());
+		if (op.isPresent()) {
+			sortDirection = op.get();
+		}
+
+		Page<UserEntity> pageOfEntities = this.userDao.findAll(PageRequest.of(page, size, sortDirection, sortBy));
+		List<UserEntity> entities = pageOfEntities.getContent();
+
+		List<UserBoundary> rv = new ArrayList<UserBoundary>();
+		for (UserEntity userEntity : entities) {
+			rv.add(convertToBoundary(userEntity));
+		}
+		return rv;
+	}
+
+	@Override
+	public void deleteAll() {
+		this.userDao.deleteAll();
 	}
 
 	private UserEntity convertToEntity(UserBoundary userBoundary) {
@@ -59,7 +130,7 @@ public class UserServiceImplementation implements UserService {
 			userEntity.setRoles(userBoundary.getRoles());
 			return userEntity;
 		} else {
-			throw new RuntimeException();
+			throw new RuntimeException("Invalid Information");
 		}
 	}
 

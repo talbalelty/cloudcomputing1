@@ -1,0 +1,12 @@
+{
+  "email": "tal@email.com",
+  "name": {
+    "first": "string",
+    "last": "string"
+  },
+  "password": "string",
+  "birthday": "2021-11-08",
+  "roles": [
+    "string"
+  ]
+}

@@ -3,13 +3,18 @@ package main;
 import java.time.LocalDate;
 import java.util.Map;
 
-//{
-//  "email":"user@afeka.ac.il",
-//  "name":{"first":"Cynthia", "last":"Chambers"},
-//  "password":"ab4de",
-//  "birthdate":"19-11-1963",
-//  "roles":["admin","devs","inspector"]
-//}
+// {
+//   "email": "tal@email.com",
+//   "name": {
+//     "first": "string",
+//     "last": "string"
+//   },
+//   "password": "string",
+//   "birthday": "2021-11-08",
+//   "roles": [
+//     "string"
+//   ]
+// }
 
 public class UserBoundary {
 	private String email;

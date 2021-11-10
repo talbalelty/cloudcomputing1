@@ -89,9 +89,36 @@ public class UserServiceImplementation implements UserService {
 		throw new RuntimeException("Invalid email: " + email);
 	}
 
+	// @Override
+	// @Transactional(readOnly = true)
+	// public List<UserBoundary> getAllUsers(int size, int page, String sortBy,
+	// String sortOrder) {
+	// if (sortBy == null || sortBy.trim().isEmpty()) {
+	// sortBy = "email";
+	// }
+
+	// Direction sortDirection = Direction.ASC;
+	// Optional<Direction> op =
+	// Direction.fromOptionalString(sortOrder.toUpperCase());
+	// if (op.isPresent()) {
+	// sortDirection = op.get();
+	// }
+
+	// Page<UserEntity> pageOfEntities = this.userDao.findAll(PageRequest.of(page,
+	// size, sortDirection, sortBy));
+	// List<UserEntity> entities = pageOfEntities.getContent();
+
+	// List<UserBoundary> rv = new ArrayList<UserBoundary>();
+	// for (UserEntity userEntity : entities) {
+	// rv.add(convertToBoundary(userEntity));
+	// }
+	// return rv;
+	// }
+
 	@Override
 	@Transactional(readOnly = true)
-	public List<UserBoundary> getAllUsers(int size, int page, String sortBy, String sortOrder) {
+	public List<UserBoundary> getAllUsersByCriteriaType(int size, int page, String sortBy, String sortOrder,
+			String criteriaType, String criteriaValue) {
 		if (sortBy == null || sortBy.trim().isEmpty()) {
 			sortBy = "email";
 		}
@@ -102,8 +129,32 @@ public class UserServiceImplementation implements UserService {
 			sortDirection = op.get();
 		}
 
-		Page<UserEntity> pageOfEntities = this.userDao.findAll(PageRequest.of(page, size, sortDirection, sortBy));
-		List<UserEntity> entities = pageOfEntities.getContent();
+		String formattedCriteriaValue;
+		List<UserEntity> entities = null;
+
+		switch (criteriaType) {
+		case "byEmailDomain":
+			formattedCriteriaValue = "%@" + criteriaValue;
+			entities = this.userDao.findAllByEmailLike(formattedCriteriaValue,
+					PageRequest.of(page, size, sortDirection, sortBy));
+			break;
+		case "byBirthYear":
+			// TODO: Replace STAB with actual logic of birth year:
+			// formattedCriteriaValue = "%@" + criteriaValue;
+			// entities = this.userDao.findAllByEmailLike(formattedCriteriaValue,
+			// PageRequest.of(page, size, sortDirection, sortBy));
+			break;
+		case "byRole":
+			// TODO: Replace STAB with actual logic of role:
+			// formattedCriteriaValue = "%@" + criteriaValue;
+			// entities = this.userDao.findAllByEmailLike(formattedCriteriaValue,
+			// PageRequest.of(page, size, sortDirection, sortBy));
+			break;
+		default:
+			Page<UserEntity> pageOfEntities = this.userDao.findAll(PageRequest.of(page, size, sortDirection, sortBy));
+			entities = pageOfEntities.getContent();
+			break;
+		}
 
 		List<UserBoundary> rv = new ArrayList<UserBoundary>();
 		for (UserEntity userEntity : entities) {

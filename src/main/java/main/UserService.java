@@ -14,6 +14,10 @@ public interface UserService {
 
 	public void deleteAll();
 
-	public List<UserBoundary> getAllUsers(int size, int page, String sortBy, String sortOrder);
+	// public List<UserBoundary> getAllUsers(int size, int page, String sortBy,
+	// String sortOrder);
+
+	public List<UserBoundary> getAllUsersByCriteriaType(int size, int page, String sortBy, String sortOrder,
+			String criteriaType, String criteriaValue);
 
 }

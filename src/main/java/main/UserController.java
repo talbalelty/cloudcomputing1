@@ -9,11 +9,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 public class UserController {
 	private UserService userService;
-	
+
 	public UserController() {
 	}
 
@@ -22,55 +23,51 @@ public class UserController {
 		super();
 		this.userService = userService;
 	}
-	
-	@RequestMapping(path="/users",
-			method = RequestMethod.POST,
-			consumes = MediaType.APPLICATION_JSON_VALUE,
-			produces = MediaType.APPLICATION_JSON_VALUE)
+
+	@RequestMapping(path = "/users", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public UserBoundary createNewUser(@RequestBody UserBoundary userBoundary) {
 		return this.userService.createNewUser(userBoundary);
 	}
-	
-	@RequestMapping(path="/users/search/size={size}&page={page}&sortBy={sortAttribute}&sortOrder={order}",
-			method = RequestMethod.GET,
-			produces = MediaType.APPLICATION_JSON_VALUE)
+
+	/*
+	 * There is a difference in the usage of @RequestParam and @PathVariable.
+	 * 
+	 * @RequestParam finds the params implicitly, while @PathVariable finds the
+	 * params explicitly.
+	 */
+
+	@RequestMapping(path = "/users/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	// criteriaType can be one of the following: "byEmailDomain / byBirthYear /
+	// byRole
 	public List<UserBoundary> getAllUsers(
-			@PathVariable("size") int size,
-			@PathVariable("page") int page,
-			@PathVariable("sortAttribute") String sortAttribute,
-			@PathVariable("order") String order) {
-		return this.userService.getAllUsers(size, page, sortAttribute, order);
+			@RequestParam(name = "criteriaType", required = false, defaultValue = "") String criteriaType,
+			@RequestParam(name = "criteriaValue", required = false) String criteriaValue, // customDomain.co.il
+			@RequestParam(name = "size", required = false, defaultValue = "5") int size,
+			@RequestParam(name = "page", required = false, defaultValue = "0") int page,
+			@RequestParam(name = "sortBy", required = false, defaultValue = "email") String sortAttribute,
+			@RequestParam(name = "sortOrder", required = false, defaultValue = "asc") String order) {
+		return this.userService.getAllUsersByCriteriaType(size, page, sortAttribute, order, criteriaType, criteriaValue);
 	}
-	
-	@RequestMapping(path="/users/{email}?password={password}",
-			method=RequestMethod.GET,
-			produces = MediaType.APPLICATION_JSON_VALUE)
-	public UserBoundary login(
-			@PathVariable("email") String email,
-			@PathVariable("password") String password) {
+
+	@RequestMapping(path = "/users/login/{email}?password={password}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public UserBoundary login(@PathVariable("email") String email,
+			@RequestParam(name = "password", required = false) String password) {
 		return this.userService.login(email, password);
 	}
-	
-	@RequestMapping(path="/users/{email}",
-			method=RequestMethod.GET,
-			produces = MediaType.APPLICATION_JSON_VALUE)
+
+	@RequestMapping(path = "/users/{email}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public UserBoundary getUserById(@PathVariable("email") String email) {
 		return this.userService.getUserById(email);
-	}	
-	
-	@RequestMapping(path="/users/{email}",
-			method = RequestMethod.PUT,
-			consumes = MediaType.APPLICATION_JSON_VALUE,
-			produces = MediaType.APPLICATION_JSON_VALUE)
-	public void updateUser(
-			@RequestBody UserBoundary userBoundary, 
-			@PathVariable("email") String email) {
+	}
+
+	@RequestMapping(path = "/users/{email}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public void updateUser(@RequestBody UserBoundary userBoundary, @PathVariable("email") String email) {
 		this.userService.updateUser(email, userBoundary);
 	}
-	
-	@RequestMapping(path="/users",
-			method = RequestMethod.DELETE)
+
+	@RequestMapping(path = "/users", method = RequestMethod.DELETE)
 	public void deleteAll() {
 		this.userService.deleteAll();
 	}
+
 }

@@ -89,32 +89,6 @@ public class UserServiceImplementation implements UserService {
 		throw new RuntimeException("Invalid email: " + email);
 	}
 
-	// @Override
-	// @Transactional(readOnly = true)
-	// public List<UserBoundary> getAllUsers(int size, int page, String sortBy,
-	// String sortOrder) {
-	// if (sortBy == null || sortBy.trim().isEmpty()) {
-	// sortBy = "email";
-	// }
-
-	// Direction sortDirection = Direction.ASC;
-	// Optional<Direction> op =
-	// Direction.fromOptionalString(sortOrder.toUpperCase());
-	// if (op.isPresent()) {
-	// sortDirection = op.get();
-	// }
-
-	// Page<UserEntity> pageOfEntities = this.userDao.findAll(PageRequest.of(page,
-	// size, sortDirection, sortBy));
-	// List<UserEntity> entities = pageOfEntities.getContent();
-
-	// List<UserBoundary> rv = new ArrayList<UserBoundary>();
-	// for (UserEntity userEntity : entities) {
-	// rv.add(convertToBoundary(userEntity));
-	// }
-	// return rv;
-	// }
-
 	@Override
 	@Transactional(readOnly = true)
 	public List<UserBoundary> getAllUsersByCriteriaType(int size, int page, String sortBy, String sortOrder,
@@ -134,21 +108,19 @@ public class UserServiceImplementation implements UserService {
 
 		switch (criteriaType) {
 		case "byEmailDomain":
-			formattedCriteriaValue = "%@" + criteriaValue;
+			formattedCriteriaValue = "@%" + criteriaValue;
 			entities = this.userDao.findAllByEmailLike(formattedCriteriaValue,
 					PageRequest.of(page, size, sortDirection, sortBy));
 			break;
 		case "byBirthYear":
-			// TODO: Replace STAB with actual logic of birth year:
-			// formattedCriteriaValue = "%@" + criteriaValue;
-			// entities = this.userDao.findAllByEmailLike(formattedCriteriaValue,
-			// PageRequest.of(page, size, sortDirection, sortBy));
+			formattedCriteriaValue = "%" + criteriaValue + "%";
+			entities = this.userDao.findAllByBirthdateLike(formattedCriteriaValue,
+					PageRequest.of(page, size, sortDirection, sortBy));
 			break;
 		case "byRole":
-			// TODO: Replace STAB with actual logic of role:
-			// formattedCriteriaValue = "%@" + criteriaValue;
-			// entities = this.userDao.findAllByEmailLike(formattedCriteriaValue,
-			// PageRequest.of(page, size, sortDirection, sortBy));
+			formattedCriteriaValue = "%" + criteriaValue + "%";
+			entities = this.userDao.findAllByRolesLike(formattedCriteriaValue,
+					PageRequest.of(page, size, sortDirection, sortBy));
 			break;
 		default:
 			Page<UserEntity> pageOfEntities = this.userDao.findAll(PageRequest.of(page, size, sortDirection, sortBy));
@@ -168,17 +140,30 @@ public class UserServiceImplementation implements UserService {
 		this.userDao.deleteAll();
 	}
 
+	private String getFormattedRoles(String[] roles) {
+		String formattedRoles = "";
+
+		for (int i = 0; i < roles.length; i++) {
+			formattedRoles += roles[i];
+
+			if (i != roles.length - 1)
+				formattedRoles += " ";
+		}
+
+		return formattedRoles;
+	}
+
 	private UserEntity convertToEntity(UserBoundary userBoundary) {
 		UserEntity userEntity = new UserEntity();
 		if (isValidEmail(userBoundary.getEmail()) && isValidName(userBoundary.getName())
-				&& isValidPassword(userBoundary.getPassword()) && isValidBirthday(userBoundary.getBirthday())
+				&& isValidPassword(userBoundary.getPassword()) && isValidBirthdate(userBoundary.getBirthdate())
 				&& isValidRoles(userBoundary.getRoles())) {
 			userEntity.setEmail(userBoundary.getEmail());
 			userEntity.setfName(userBoundary.getName().get("first"));
 			userEntity.setlName(userBoundary.getName().get("last"));
 			userEntity.setPassword(userBoundary.getPassword());
-			userEntity.setBirthday(userBoundary.getBirthday());
-			userEntity.setRoles(userBoundary.getRoles());
+			userEntity.setBirthdate(userBoundary.getBirthdate().toString());
+			userEntity.setRoles(getFormattedRoles(userBoundary.getRoles()));
 			return userEntity;
 		} else {
 			throw new RuntimeException("Invalid Information");
@@ -192,9 +177,9 @@ public class UserServiceImplementation implements UserService {
 		Map<String, String> name = new HashMap<String, String>();
 		name.put("first", fName);
 		name.put("last", lName);
-		LocalDate birthday = userEntity.getBirthday();
-		String[] roles = userEntity.getRoles();
-		UserBoundary boundary = new UserBoundary(email, name, null, birthday, roles);
+		LocalDate birthdate = LocalDate.parse(userEntity.getBirthdate());
+		String[] roles = userEntity.getRoles().split(" ");
+		UserBoundary boundary = new UserBoundary(email, name, null, birthdate, roles);
 		return boundary;
 	}
 
@@ -211,8 +196,8 @@ public class UserServiceImplementation implements UserService {
 		return true;
 	}
 
-	private boolean isValidBirthday(LocalDate birthday) {
-		return birthday != null;
+	private boolean isValidBirthdate(LocalDate birthdate) {
+		return birthdate != null;
 	}
 
 	private boolean isValidPassword(String password) {

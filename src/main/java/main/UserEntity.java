@@ -1,6 +1,5 @@
 package main;
 
-import java.time.LocalDate;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -12,8 +11,8 @@ public class UserEntity {
 	private String fName;
 	private String lName;
 	private String password;
-	private LocalDate birthday;
-	private String[] roles;
+	private String birthdate;
+	private String roles;
 
 	public UserEntity() {
 	}
@@ -51,19 +50,19 @@ public class UserEntity {
 		this.password = password;
 	}
 
-	public LocalDate getBirthday() {
-		return birthday;
+	public String getBirthdate() {
+		return birthdate;
 	}
 
-	public void setBirthday(LocalDate birthday) {
-		this.birthday = birthday;
+	public void setBirthdate(String birthdate) {
+		this.birthdate = birthdate;
 	}
 
-	public String[] getRoles() {
+	public String getRoles() {
 		return roles;
 	}
 
-	public void setRoles(String[] roles) {
+	public void setRoles(String roles) {
 		this.roles = roles;
 	}
 

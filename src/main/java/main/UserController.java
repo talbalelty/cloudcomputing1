@@ -36,12 +36,13 @@ public class UserController {
 	 * params explicitly.
 	 */
 
-	@RequestMapping(path = "/users/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	// criteriaType can be one of the following: "byEmailDomain / byBirthYear /
 	// byRole
+	@RequestMapping(path = "/users/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public List<UserBoundary> getAllUsers(
 			@RequestParam(name = "criteriaType", required = false, defaultValue = "") String criteriaType,
-			@RequestParam(name = "criteriaValue", required = false) String criteriaValue, // customDomain.co.il
+			@RequestParam(name = "criteriaValue", required = false) String criteriaValue,
+			// customDomain.co.il
 			@RequestParam(name = "size", required = false, defaultValue = "5") int size,
 			@RequestParam(name = "page", required = false, defaultValue = "0") int page,
 			@RequestParam(name = "sortBy", required = false, defaultValue = "email") String sortAttribute,

@@ -10,7 +10,7 @@ import java.util.Map;
 //     "last": "string"
 //   },
 //   "password": "string",
-//   "birthday": "2021-11-08",
+//   "birthdate": "11-08-2021",
 //   "roles": [
 //     "string"
 //   ]
@@ -20,18 +20,18 @@ public class UserBoundary {
 	private String email;
 	private Map<String, String> name;
 	private String password;
-	private LocalDate birthday;
+	private LocalDate birthdate;
 	private String[] roles;
 
 	public UserBoundary() {
 	}
 
-	public UserBoundary(String email, Map<String, String> name, String password, LocalDate birthday, String[] roles) {
+	public UserBoundary(String email, Map<String, String> name, String password, LocalDate birthdate, String[] roles) {
 		super();
 		this.email = email;
 		this.name = name;
 		this.password = password;
-		this.birthday = birthday;
+		this.birthdate = birthdate;
 		this.roles = roles;
 	}
 
@@ -59,12 +59,12 @@ public class UserBoundary {
 		this.password = password;
 	}
 
-	public LocalDate getBirthday() {
-		return birthday;
+	public LocalDate getBirthdate() {
+		return birthdate;
 	}
 
-	public void setBirthday(LocalDate birthday) {
-		this.birthday = birthday;
+	public void setBirthday(LocalDate birthdate) {
+		this.birthdate = birthdate;
 	}
 
 	public String[] getRoles() {
